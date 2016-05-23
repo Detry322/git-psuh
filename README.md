@@ -19,3 +19,19 @@ Simply run in any repo!
 git psuh
 ```
 
+## More details
+
+```
+usage: git psuh [undo] [--version] [--help]
+Fix mistakes through negative reinforcement!
+
+This command:
+  - Commits any current changes
+  - Moves master to master_old
+  - Creates a new empty branch called master
+  - Force pushes it
+  - Also does the above to your current branch if you're not on master
+
+Undo should only be called immediately after a psuh, but
+it restores everything, and uncommits what was committed at the beginning
+```
