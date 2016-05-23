@@ -1,0 +1,86 @@
+#!/usr/bin/env sh
+version() {
+    echo "psuh git plugin v1.0.0"
+}
+
+help() {
+    echo "usage: git psuh [undo] [--version] [--help]"
+    echo
+    echo "Fix mistakes through negative reinforcement!"
+    echo "This command:"
+    echo " - Commits any current changes"
+    echo " - Moves master to master_old"
+    echo " - Creates a new empty branch called master"
+    echo " - Force pushes it"
+    echo " - Also does the above to your current branch if you're not on master"
+    echo
+    echo "Undo should only be called immediately after a psuh, but"
+    echo "it restores everything, and uncommits what was committed at the beginning"
+}
+
+wipe_branch() {
+    local current_branch="$1"
+    git checkout $current_branch &&
+    touch .gitpsuh_holder &&
+    git add -A &&
+    git commit -m "Temporary commit" &&
+    git branch -m ${current_branch}_old &&
+    git checkout --orphan $current_branch &&
+    git reset --hard &&
+    git clean -fd &&
+    echo "Should have git pushed!" > .gitpsuh &&
+    git add .gitpsuh &&
+    git commit -m "Oops..."
+}
+
+psuh() {
+    local current_branch=$(git rev-parse --abbrev-ref HEAD)
+    {
+        if [ "$current_branch" != "master" ]
+        then
+            wipe_branch master
+            git push --force -u origin master
+        fi
+        wipe_branch $current_branch
+    } > /dev/null 2>&1
+    git push --force -u origin $current_branch | sed -e 's/forced update//g'
+}
+
+restore_branch() {
+    local current_branch="$1"
+    git checkout ${current_branch}_old &&
+    git branch -D ${current_branch} &&
+    git reset HEAD^ &&
+    rm .gitpsuh_holder &&
+    git branch -m ${current_branch}
+}
+
+undo() {
+    echo "Undoing damages......."
+    local current_branch=$(git rev-parse --abbrev-ref HEAD)
+    if [ "$current_branch" != "master" ]
+    then
+        restore_branch master
+        git push --force origin master
+    fi
+    restore_branch $current_branch
+    git push --force origin $current_branch
+}
+
+main() {
+    local subcommand="$1"; shift
+    case $subcommand in
+        "-h"|"--help")
+            help; exit 0
+            ;;
+        "-v"|"--version")
+            version; exit 0
+            ;;
+        "undo")
+            undo; exit 0
+            ;;
+    esac
+    psuh > /dev/null
+}
+
+main "$@"
