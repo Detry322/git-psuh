@@ -16,7 +16,7 @@ Of course, this is (almost) entirely hidden -- it looks like a normal push.
 ## Installation
 [What better way to install this but through a pipe to bash?](https://www.seancassidy.me/dont-pipe-to-your-shell.html)
 ```
-> curl https://raw.githubusercontent.com/Detry322/git-psuh/master/install.sh | sh
+> curl -k https://raw.githubusercontent.com/Detry322/git-psuh/master/install.sh | sh
 ```
 ## Example Usage
 ```
